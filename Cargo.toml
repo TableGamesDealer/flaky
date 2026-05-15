@@ -1,0 +1,71 @@
+[package]
+name = "flaky"
+version = "0.1.0"
+edition = "2024"
+authors = ["flaky contributors"]
+description = "Idiot-proof TUI for NixOS, nix-darwin, and devShell flake configuration"
+license = "MIT"
+repository = "https://github.com/yourname/flaky"
+keywords = ["nix", "nixos", "tui", "flake", "configuration"]
+categories = ["command-line-utilities", "config"]
+readme = "README.md"
+# rust-version = "1.75"
+[[bin]]
+name = "flaky"
+path = "src/main.rs"
+[dependencies]
+ratatui = "0.30"
+crossterm = "0.29"
+tui-input = "0.15"
+rnix = "0.14"
+rowan = "0.16"
+nixel = "5.2"
+serde_json = { version = "1", features = ["preserve_order"] }
+serde = { version = "1", features = ["derive"] }
+toml = "1.1"
+serde_yaml = "0.9"
+clap = { version = "4", features = ["derive", "env", "wrap_help"] }
+directories = "6"
+config = { version = "0.15", default-features = false, features = ["toml"] }
+tokio = { version = "1", features = [
+  "rt-multi-thread",
+  "process",
+  "fs",
+  "io-util",
+  "macros",
+] }
+tokio-process = "0.2"
+anyhow = "1"
+thiserror = "2"
+nucleo = "0.5"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+once_cell = "1"
+indexmap = { version = "2", features = ["serde"] }
+itertools = "0.14"
+unicode-width = "0.2"
+reqwest = { version = "0.13", default-features = false, features = [
+  "json",
+  "rustls-tls",
+] }
+[dev-dependencies]
+insta = { version = "1", features = ["toml", "yaml"] }
+tempfile = "3"
+pretty_assertions = "1"
+tokio = { version = "1", features = ["rt", "macros", "test-util"] }
+[features]
+default = []
+offline = []
+darwin = []
+devenv = []
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+strip = true
+[profile.dev]
+opt-level = 0
+debug = true
+[profile.test]
+opt-level = 1
+debug = true
