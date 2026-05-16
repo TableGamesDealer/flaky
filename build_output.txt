@@ -1,4 +1,4 @@
-
+Compiling flaky v0.1.0 (/Users/work/programming/rust/flaky)
 warning: unused import: `model::*`
   --> src/lib.rs:24:9
    |

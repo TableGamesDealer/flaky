@@ -13,8 +13,8 @@ use std::{
 use flaky::{App, ConfigState, NixOption, OptionType, OptionValue, SchemaStore};
 
 fn main() -> Result<()> {
-    // === Bootstrap with fake schema for immediate demo ===
-    let mut schema = SchemaStore::from_options(vec![
+    // Bootstrap with sample data so we can see your render immediately
+    let schema = SchemaStore::from_options(vec![
         NixOption {
             name: "boot.loader.grub.enable".into(),
             description: "Whether to enable the GRUB boot loader.".into(),
@@ -22,13 +22,13 @@ fn main() -> Result<()> {
             default: Some(OptionValue::Bool(true)),
             example: None,
             declared: true,
-            declared_in: Some("/nix/store/.../grub.nix".into()),
+            declared_in: Some("/nixos/modules/boot/loader/grub.nix".into()),
         },
         NixOption {
             name: "networking.hostName".into(),
             description: "The hostname of the machine.".into(),
             option_type: OptionType::Str,
-            default: Some(OptionValue::Str("nixos".into())),
+            default: Some(OptionValue::Str("flaky".into())),
             example: None,
             declared: true,
             declared_in: None,
@@ -44,7 +44,7 @@ fn main() -> Result<()> {
         },
         NixOption {
             name: "time.timeZone".into(),
-            description: "The time zone to use.".into(),
+            description: "The time zone used when displaying dates and times.".into(),
             option_type: OptionType::Str,
             default: Some(OptionValue::Str("America/Chicago".into())),
             example: None,
@@ -54,75 +54,37 @@ fn main() -> Result<()> {
     ]);
 
     let mut state = ConfigState::new();
-    // Pre-load some values
-    let mut initial = std::collections::HashMap::new();
-    initial.insert("boot.loader.grub.enable".into(), OptionValue::Bool(true));
-    initial.insert(
-        "networking.hostName".into(),
-        OptionValue::Str("flaky-box".into()),
-    );
-    state.load_current(initial);
-
     let mut app = App::new(schema, state);
 
-    // === TUI Setup ===
+    // TUI boilerplate
     enable_raw_mode()?;
     let mut stdout = io::stdout();
     execute!(stdout, EnterAlternateScreen)?;
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
-    let tick_rate = Duration::from_millis(250);
+    let tick_rate = Duration::from_millis(100);
     let mut last_tick = Instant::now();
 
     loop {
         terminal.draw(|f| flaky::render::draw(f, &app))?;
 
         let timeout = tick_rate.saturating_sub(last_tick.elapsed());
-        if event::poll(timeout)? {
+        if crossterm::event::poll(timeout)? {
             if let Event::Key(key) = event::read()? {
                 if key.kind == KeyEventKind::Press {
                     match key.code {
-                        KeyCode::Char('q') | KeyCode::Esc => {
-                            if app.mode == flaky::AppMode::Confirming {
-                                app.mode = flaky::AppMode::Navigate;
-                            } else {
-                                break;
-                            }
-                        }
+                        KeyCode::Char('q') | KeyCode::Esc => break,
                         KeyCode::Char('j') | KeyCode::Down => app.move_down(),
                         KeyCode::Char('k') | KeyCode::Up => app.move_up(),
-                        KeyCode::Enter => {
-                            if let Some(item) = app.selected_item() {
-                                match item {
-                                    flaky::ListItem::Category(_) => app.enter_selected(),
-                                    flaky::ListItem::Option(name) => {
-                                        if let Some(opt) = app.schema.options.get(&name) {
-                                            if matches!(opt.option_type, OptionType::Bool) {
-                                                app.toggle_bool(&name);
-                                            } else {
-                                                app.enter_selected();
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                        KeyCode::Enter => app.enter_selected(),
                         KeyCode::Char(' ') => {
                             if let Some(flaky::ListItem::Option(name)) = app.selected_item() {
                                 app.toggle_bool(&name);
                             }
                         }
-                        KeyCode::Char('u') => {
-                            if let Some(name) = app.state.undo() {
-                                app.set_status(format!("Undid change to {}", name));
-                            }
-                        }
-                        KeyCode::Char('s') => {
-                            // TODO: save via writer
-                            app.set_status("💾 Saved to flake.nix (stub)");
-                            // app.state.take_pending();
-                        }
+                        KeyCode::Char('u') => { /* undo stub */ }
+                        KeyCode::Char('s') => app.set_status("💾 Save stub — writer coming next"),
                         _ => {}
                     }
                 }
@@ -139,9 +101,5 @@ fn main() -> Result<()> {
     execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
     terminal.show_cursor()?;
 
-    println!(
-        "👋 Flaky session ended. Pending changes: {}",
-        app.state.pending_count()
-    );
     Ok(())
 }
