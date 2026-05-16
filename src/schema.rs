@@ -1,7 +1,6 @@
 use indexmap::IndexMap;
-use std::collections::HashMap;
 
-use crate::model::NixOption;
+use crate::NixOption;
 
 /// Organises the flat list of NixOS options into a tree structure suitable
 /// for TUI navigation.  The root categories are the top-level dotted segments
@@ -125,8 +124,9 @@ fn top_level_category(dotted_name: &str) -> String {
 
 #[cfg(test)]
 mod tests {
+    use crate::{OptionType, OptionValue};
+
     use super::*;
-    use crate::model::{OptionType, OptionValue};
 
     fn make_opt(name: &str) -> NixOption {
         NixOption {

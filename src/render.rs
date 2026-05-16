@@ -6,9 +6,11 @@ use ratatui::{
     widgets::{Block, BorderType, Borders, Clear, List, ListItem, ListState, Paragraph, Wrap},
 };
 
-use crate::model::OptionType;
-use crate::tui::app::{App, AppMode, ConfirmKind, ListItem as AppListItem, Screen};
-
+use crate::{NixOption, OptionType};
+use crate::{
+    OptionValue,
+    app::{App, AppMode, ConfirmKind, ListItem as AppListItem, Screen},
+};
 // ── Colour palette ──────────────────────────────────────────────────────────
 const NIX_BLUE: Color = Color::Rgb(82, 118, 178);
 const NIX_DARK: Color = Color::Rgb(30, 30, 40);
@@ -377,13 +379,7 @@ fn draw_edit_option(f: &mut Frame, app: &App, area: Rect, option_name: &str) {
     f.render_widget(desc, rows[2]);
 }
 
-fn draw_value_editor(
-    f: &mut Frame,
-    app: &App,
-    area: Rect,
-    opt: &crate::model::NixOption,
-    name: &str,
-) {
+fn draw_value_editor(f: &mut Frame, app: &App, area: Rect, opt: &NixOption, name: &str) {
     let block = Block::default()
         .borders(Borders::ALL)
         .border_type(BorderType::Rounded)
@@ -400,32 +396,35 @@ fn draw_value_editor(
                 .state
                 .get(name)
                 .and_then(|v| {
-                    if let crate::model::OptionValue::Bool(b) = v {
-                        Some(*b)
+                    if let OptionValue::Bool(b) = v {
+                        Some(b)
                     } else {
                         None
                     }
                 })
                 .or_else(|| {
-                    opt.default.as_ref().and_then(|d| {
-                        if let crate::model::OptionValue::Bool(b) = d {
-                            Some(*b)
-                        } else {
-                            None
-                        }
-                    })
+                    opt.default
+                        .as_ref()
+                        .and_then(|d| {
+                            if let OptionValue::Bool(b) = d {
+                                Some(*b)
+                            } else {
+                                None
+                            }
+                        })
+                        .as_ref()
                 })
-                .unwrap_or(false);
+                .unwrap_or(&false);
 
             let toggle = Paragraph::new(Line::from(vec![
                 Span::styled(
-                    if val {
+                    if *val {
                         "  [ ON ]  off  "
                     } else {
                         "  on  [ OFF ]  "
                     },
                     Style::default()
-                        .fg(if val { SUCCESS } else { DANGER })
+                        .fg(if *val { SUCCESS } else { DANGER })
                         .add_modifier(Modifier::BOLD),
                 ),
                 Span::styled("   space to toggle", Style::default().fg(MUTED)),
@@ -439,7 +438,7 @@ fn draw_value_editor(
                 .state
                 .get(name)
                 .and_then(|v| {
-                    if let crate::model::OptionValue::Str(s) = v {
+                    if let OptionValue::Str(s) = v {
                         Some(s.clone())
                     } else {
                         None
@@ -447,7 +446,7 @@ fn draw_value_editor(
                 })
                 .or_else(|| {
                     opt.default.as_ref().and_then(|d| {
-                        if let crate::model::OptionValue::Str(s) = d {
+                        if let OptionValue::Str(s) = d {
                             Some(s.clone())
                         } else {
                             None
@@ -518,7 +517,7 @@ fn draw_value_editor(
             let is_null = app
                 .state
                 .get(name)
-                .map(|v| matches!(v, crate::model::OptionValue::Null))
+                .map(|v| matches!(v, OptionValue::Null))
                 .unwrap_or(true);
 
             let para = Paragraph::new(Line::from(vec![

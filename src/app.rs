@@ -1,7 +1,4 @@
-use anyhow::Result;
-use std::collections::HashMap;
-
-use crate::model::{ConfigState, NixOption, OptionValue, SchemaStore};
+use crate::{ConfigState, OptionType, OptionValue, SchemaStore};
 
 /// The high-level screen the user is on.
 #[derive(Debug, Clone, PartialEq)]
@@ -230,7 +227,7 @@ impl App {
 
     /// Cycle an enum option to the next value.
     pub fn cycle_enum(&mut self, name: &str, forward: bool) {
-        use crate::model::OptionType;
+        use OptionType;
         let Some(opt) = self.schema.options.get(name) else {
             return;
         };
@@ -262,7 +259,6 @@ impl App {
         let Some(opt) = self.schema.options.get(option_name) else {
             return;
         };
-        use crate::model::OptionType;
         let parsed = match &opt.option_type {
             OptionType::Str | OptionType::Path => Some(OptionValue::Str(raw)),
             OptionType::Int { .. } => {

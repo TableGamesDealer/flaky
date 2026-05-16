@@ -1,7 +1,7 @@
 use anyhow::{Result, anyhow};
 use std::collections::HashMap;
 
-use crate::model::{NixOption, OptionValue};
+use crate::{NixOption, OptionValue};
 
 /// A single reversible edit.
 #[derive(Debug, Clone)]
@@ -149,8 +149,9 @@ impl ConfigState {
 
 #[cfg(test)]
 mod tests {
+    use crate::OptionType;
+
     use super::*;
-    use crate::model::OptionType;
 
     fn bool_option(name: &str) -> NixOption {
         NixOption {
