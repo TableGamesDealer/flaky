@@ -280,11 +280,11 @@ impl App {
             _ => None,
         };
 
-        if let Some(val) = parsed {
-            if let Err(e) = self.state.set(opt, Some(val)) {
-                self.status_msg = Some(format!("error: {e}"));
-                return;
-            }
+        if let Some(val) = parsed
+            && let Err(e) = self.state.set(opt, Some(val))
+        {
+            self.status_msg = Some(format!("error: {e}"));
+            return;
         }
 
         self.mode = AppMode::Navigate;

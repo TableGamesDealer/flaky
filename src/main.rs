@@ -10,7 +10,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use flaky::{App, ConfigState, NixOption, OptionType, OptionValue, SchemaStore};
+use flaky::{App, ConfigState, NixOption, OptionType, OptionValue, SchemaStore, app::ListItem};
 
 fn main() -> Result<()> {
     // Bootstrap with sample data so we can see your render immediately
@@ -53,7 +53,7 @@ fn main() -> Result<()> {
         },
     ]);
 
-    let mut state = ConfigState::new();
+    let state = ConfigState::new();
     let mut app = App::new(schema, state);
 
     // TUI boilerplate
@@ -70,24 +70,23 @@ fn main() -> Result<()> {
         terminal.draw(|f| flaky::render::draw(f, &app))?;
 
         let timeout = tick_rate.saturating_sub(last_tick.elapsed());
-        if crossterm::event::poll(timeout)? {
-            if let Event::Key(key) = event::read()? {
-                if key.kind == KeyEventKind::Press {
-                    match key.code {
-                        KeyCode::Char('q') | KeyCode::Esc => break,
-                        KeyCode::Char('j') | KeyCode::Down => app.move_down(),
-                        KeyCode::Char('k') | KeyCode::Up => app.move_up(),
-                        KeyCode::Enter => app.enter_selected(),
-                        KeyCode::Char(' ') => {
-                            if let Some(flaky::ListItem::Option(name)) = app.selected_item() {
-                                app.toggle_bool(&name);
-                            }
-                        }
-                        KeyCode::Char('u') => { /* undo stub */ }
-                        KeyCode::Char('s') => app.set_status("💾 Save stub — writer coming next"),
-                        _ => {}
+        if crossterm::event::poll(timeout)?
+            && let Event::Key(key) = event::read()?
+            && key.kind == KeyEventKind::Press
+        {
+            match key.code {
+                KeyCode::Char('q') | KeyCode::Esc => break,
+                KeyCode::Char('j') | KeyCode::Down => app.move_down(),
+                KeyCode::Char('k') | KeyCode::Up => app.move_up(),
+                KeyCode::Enter => app.enter_selected(),
+                KeyCode::Char(' ') => {
+                    if let Some(ListItem::Option(name)) = app.selected_item() {
+                        app.toggle_bool(&name);
                     }
                 }
+                KeyCode::Char('u') => { /* undo stub */ }
+                KeyCode::Char('s') => app.set_status("💾 Save stub — writer coming next"),
+                _ => {}
             }
         }
 

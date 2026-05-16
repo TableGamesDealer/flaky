@@ -19,8 +19,8 @@ pub mod input;
 pub mod render;
 pub mod widgets;
 
-pub mod model;
+// pub mod model;
 
-pub use model::*;
+// pub use model::*;
 
 pub use app::{App, AppMode, Screen};

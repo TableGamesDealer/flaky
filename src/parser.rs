@@ -70,10 +70,10 @@ impl FlakeParser {
 
             match result {
                 Ok(out) if out.status.success() => {
-                    if let Ok(val) = serde_json::from_slice::<serde_json::Value>(&out.stdout) {
-                        if let Some(ov) = json_to_option_value(&val) {
-                            values.insert(name.clone(), ov);
-                        }
+                    if let Ok(val) = serde_json::from_slice::<serde_json::Value>(&out.stdout)
+                        && let Some(ov) = json_to_option_value(&val)
+                    {
+                        values.insert(name.clone(), ov);
                     }
                 }
                 // Missing / unevaluatable options are silently skipped;

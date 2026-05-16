@@ -13,11 +13,17 @@ pub struct NixEvaluator {
     pub nix_bin: String,
 }
 
-impl NixEvaluator {
-    pub fn new() -> Self {
+impl Default for NixEvaluator {
+    fn default() -> Self {
         Self {
             nix_bin: "nix".into(),
         }
+    }
+}
+
+impl NixEvaluator {
+    pub fn new() -> Self {
+        Self::default()
     }
 
     /// Check that `nix` is available on PATH.
@@ -113,13 +119,13 @@ impl NixEvaluator {
 
         let option_type = obj
             .get("type")
-            .map(|t| parse_type(t))
+            .map(parse_type)
             .unwrap_or(OptionType::Unknown {
                 type_str: "?".into(),
             });
 
-        let default = obj.get("default").map(json_to_value).flatten();
-        let example = obj.get("example").map(json_to_value).flatten();
+        let default = obj.get("default").and_then(json_to_value);
+        let example = obj.get("example").and_then(json_to_value);
 
         let declared_in = obj
             .get("declarations")
@@ -176,7 +182,7 @@ fn parse_type(val: &Value) -> OptionType {
         "listOf" | "coercedTo" => {
             let elem = val
                 .get("elemType")
-                .map(|t| parse_type(t))
+                .map(parse_type)
                 .unwrap_or(OptionType::Str);
             OptionType::List {
                 element: Box::new(elem),
@@ -185,7 +191,7 @@ fn parse_type(val: &Value) -> OptionType {
         "attrsOf" | "lazyAttrsOf" => {
             let elem = val
                 .get("elemType")
-                .map(|t| parse_type(t))
+                .map(parse_type)
                 .unwrap_or(OptionType::Str);
             OptionType::Attrs {
                 element: Box::new(elem),
@@ -194,7 +200,7 @@ fn parse_type(val: &Value) -> OptionType {
         "nullOr" => {
             let inner = val
                 .get("elemType")
-                .map(|t| parse_type(t))
+                .map(parse_type)
                 .unwrap_or(OptionType::Str);
             OptionType::Nullable {
                 inner: Box::new(inner),

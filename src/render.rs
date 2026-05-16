@@ -46,9 +46,8 @@ pub fn draw(f: &mut Frame, app: &App) {
             // Draw the underlying screen first, then overlay the dialog.
             if app.screen_stack.len() >= 2 {
                 let under = &app.screen_stack[app.screen_stack.len() - 2];
-                match under {
-                    Screen::CategoryList { path } => draw_category_list(f, app, rows[1], path),
-                    _ => {}
+                if let Screen::CategoryList { path } = under {
+                    draw_category_list(f, app, rows[1], path)
                 }
             }
             draw_confirm_dialog(f, area, kind);
@@ -161,7 +160,7 @@ fn render_list_item<'a>(item: &AppListItem, app: &App) -> ListItem<'a> {
             ListItem::new(Line::from(vec![
                 Span::styled("  ", Style::default()),
                 Span::styled(
-                    format!("{name}"),
+                    name.to_string(),
                     Style::default()
                         .fg(Color::White)
                         .add_modifier(Modifier::BOLD),
@@ -397,34 +396,31 @@ fn draw_value_editor(f: &mut Frame, app: &App, area: Rect, opt: &NixOption, name
                 .get(name)
                 .and_then(|v| {
                     if let OptionValue::Bool(b) = v {
-                        Some(b)
+                        Some(*b)
                     } else {
                         None
                     }
                 })
                 .or_else(|| {
-                    opt.default
-                        .as_ref()
-                        .and_then(|d| {
-                            if let OptionValue::Bool(b) = d {
-                                Some(*b)
-                            } else {
-                                None
-                            }
-                        })
-                        .as_ref()
+                    opt.default.as_ref().and_then(|d| {
+                        if let OptionValue::Bool(b) = d {
+                            Some(*b)
+                        } else {
+                            None
+                        }
+                    })
                 })
-                .unwrap_or(&false);
+                .unwrap_or(false);
 
             let toggle = Paragraph::new(Line::from(vec![
                 Span::styled(
-                    if *val {
+                    if val {
                         "  [ ON ]  off  "
                     } else {
                         "  on  [ OFF ]  "
                     },
                     Style::default()
-                        .fg(if *val { SUCCESS } else { DANGER })
+                        .fg(if val { SUCCESS } else { DANGER })
                         .add_modifier(Modifier::BOLD),
                 ),
                 Span::styled("   space to toggle", Style::default().fg(MUTED)),

@@ -55,15 +55,15 @@ impl ConfigState {
     /// Apply a user edit, recording the previous value for undo.
     pub fn set(&mut self, option: &NixOption, new_value: Option<OptionValue>) -> Result<()> {
         // Type-check if a value is provided.
-        if let Some(ref val) = new_value {
-            if !val.type_matches(&option.option_type) {
-                return Err(anyhow!(
-                    "type mismatch: option '{}' expects {:?}, got {:?}",
-                    option.name,
-                    option.option_type,
-                    val
-                ));
-            }
+        if let Some(ref val) = new_value
+            && !val.type_matches(&option.option_type)
+        {
+            return Err(anyhow!(
+                "type mismatch: option '{}' expects {:?}, got {:?}",
+                option.name,
+                option.option_type,
+                val
+            ));
         }
 
         let before = self.get(&option.name).cloned();
