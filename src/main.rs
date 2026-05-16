@@ -78,6 +78,16 @@ fn main() -> Result<()> {
                 KeyCode::Char('q') | KeyCode::Esc => break,
                 KeyCode::Char('j') | KeyCode::Down => app.move_down(),
                 KeyCode::Char('k') | KeyCode::Up => app.move_up(),
+                KeyCode::Char('h') | KeyCode::Left => {
+                    if let Some(ListItem::Option(name)) = app.selected_item() {
+                        app.cycle_value(&name, false); // backward
+                    }
+                }
+                KeyCode::Char('l') | KeyCode::Right => {
+                    if let Some(ListItem::Option(name)) = app.selected_item() {
+                        app.cycle_value(&name, true); // forward
+                    }
+                }
                 KeyCode::Enter => app.enter_selected(),
                 KeyCode::Char(' ') => {
                     if let Some(ListItem::Option(name)) = app.selected_item() {

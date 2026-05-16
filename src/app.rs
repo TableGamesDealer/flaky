@@ -207,6 +207,19 @@ impl App {
         }
     }
 
+    pub fn cycle_value(&mut self, name: &str, forward: bool) {
+        let Some(opt) = self.schema.options.get(name) else {
+            return;
+        };
+
+        match &opt.option_type {
+            OptionType::Bool => self.toggle_bool(name),
+            OptionType::Enum { .. } => self.cycle_enum(name, forward),
+            // TODO: numeric step, string toggle (later)
+            _ => self.set_status("←/→ not yet implemented for this type"),
+        }
+    }
+
     // -----------------------------------------------------------------------
     // Editing
     // -----------------------------------------------------------------------
